@@ -2,9 +2,12 @@ package dev.sentinel;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -110,24 +113,30 @@ class TokenBucketTest {
         assertThrows(IllegalArgumentException.class, () -> new TokenBucket(10, 2.0, null));
     }
 
-    @Test
+    @RepeatedTest(20)
+    @Timeout(10)
     void neverExceedsCapacityUnderConcurrency() {
         LongSupplier clock = () -> now;
 
         TokenBucket tokenBucket = new TokenBucket(100_000, 1.0, clock);
         AtomicInteger counter = new AtomicInteger();
 
+        CountDownLatch start = new CountDownLatch(1);
+
         try (ExecutorService executors = Executors.newFixedThreadPool(8)) {
 
             for (int i = 0; i < 8; i++) {
                 executors.submit(() -> {
+                    start.await();
                     for (int j = 0; j < 25000; j++) {
                         if (tokenBucket.tryConsume(1).allowed()) {
                             counter.incrementAndGet();
                         }
                     }
+                    return null;
                 });
             }
+            start.countDown();
         }
         assertEquals(100_000, counter.get());
     }
