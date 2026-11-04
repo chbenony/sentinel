@@ -28,7 +28,7 @@ public class TokenBucket {
         this.lastRefillTime = clock.getAsLong();
     }
 
-    public Decision tryConsume(int cost) {
+    public synchronized Decision tryConsume(int cost) {
         if (cost <= 0) {
             throw new IllegalArgumentException("invalid cost");
         }
