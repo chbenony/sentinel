@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.LongSupplier;
 
 class TokenBucketTest {
@@ -106,4 +109,28 @@ class TokenBucketTest {
     void rejectsNullClock() {
         assertThrows(IllegalArgumentException.class, () -> new TokenBucket(10, 2.0, null));
     }
+
+    @Test
+    void neverExceedsCapacityUnderConcurrency() {
+        LongSupplier clock = () -> now;
+
+        TokenBucket tokenBucket = new TokenBucket(100_000, 1.0, clock);
+        AtomicInteger counter = new AtomicInteger();
+
+        try (ExecutorService executors = Executors.newFixedThreadPool(8)) {
+
+            for (int i = 0; i < 8; i++) {
+                executors.submit(() -> {
+                    for (int j = 0; j < 25000; j++) {
+                        if (tokenBucket.tryConsume(1).allowed()) {
+                            counter.incrementAndGet();
+                        }
+                    }
+                });
+            }
+        }
+        assertEquals(100_000, counter.get());
+    }
 }
+
+
