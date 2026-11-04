@@ -1,6 +1,7 @@
 package dev.sentinel;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -22,13 +23,13 @@ class TokenBucketTest {
     }
 
     @Test
-    void deniesWhenEmpty(){
+    void deniesWhenEmpty() {
         LongSupplier clock = () -> now;
 
         TokenBucket tokenBucket = new TokenBucket(10, 2.0, clock);
 
         for (int i = 0; i < 10; i++) {
-             assertTrue(tokenBucket.tryConsume(1).allowed());
+            assertTrue(tokenBucket.tryConsume(1).allowed());
         }
 
         Decision decision = tokenBucket.tryConsume(1);
@@ -64,5 +65,45 @@ class TokenBucketTest {
 
         assertTrue(decision.allowed());
         assertEquals(9, decision.remaining());
+    }
+
+    @Test
+    void rejectsNegativeCost() {
+        LongSupplier clock = () -> now;
+
+        TokenBucket tokenBucket = new TokenBucket(10, 2.0, clock);
+        assertThrows(IllegalArgumentException.class, () -> tokenBucket.tryConsume(-5));
+    }
+
+    @Test
+    void rejectsCostGreaterThanCapacity() {
+        LongSupplier clock = () -> now;
+
+        TokenBucket tokenBucket = new TokenBucket(10, 2.0, clock);
+        assertThrows(IllegalArgumentException.class, () -> tokenBucket.tryConsume(30));
+    }
+
+    @Test
+    void rejectsZeroCapacity() {
+        LongSupplier clock = () -> now;
+        assertThrows(IllegalArgumentException.class, () -> new TokenBucket(0, 2.0, clock));
+    }
+
+    @Test
+    void rejectsNegativeRate() {
+        LongSupplier clock = () -> now;
+        assertThrows(IllegalArgumentException.class, () -> new TokenBucket(10, -2.0, clock));
+
+    }
+
+    @Test
+    void rejectsNANRate() {
+        LongSupplier clock = () -> now;
+        assertThrows(IllegalArgumentException.class, () -> new TokenBucket(10, Double.NaN, clock));
+    }
+
+    @Test
+    void rejectsNullClock() {
+        assertThrows(IllegalArgumentException.class, () -> new TokenBucket(10, 2.0, null));
     }
 }

@@ -11,6 +11,16 @@ public class TokenBucket {
     private long lastRefillTime;
 
     public TokenBucket(int capacity, double refillRate, LongSupplier clock) {
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("capacity must be positive");
+        }
+        if (refillRate <= 0 || !Double.isFinite(refillRate)){
+            throw new IllegalArgumentException("refillRate must be positive and finite");
+        }
+        if (clock == null) {
+            throw new IllegalArgumentException("clock cannot be null");
+        }
+
         this.capacity = capacity;
         this.refillRate = refillRate;
         this.clock = clock;
@@ -19,6 +29,14 @@ public class TokenBucket {
     }
 
     public Decision tryConsume(int cost) {
+        if (cost <= 0) {
+            throw new IllegalArgumentException("invalid cost");
+        }
+
+        if (cost > capacity) {
+            throw new IllegalArgumentException("cost is greater than capacity");
+        }
+
         long now = clock.getAsLong();
 
         long elapsed = now - lastRefillTime;
