@@ -30,9 +30,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       # Download the wrapper and dependencies and compile while network access
       # is available, so Codex can run the tests offline inside its sandbox.
-      # A compile failure must not skip the review, so the step may fail.
+      # Running the tests (not just testClasses) also resolves the test runtime
+      # classpath (JUnit engine/launcher). A compile or test failure must not
+      # skip the review, so the step may fail.
       - name: Warm up Gradle
-        run: ./gradlew testClasses --no-daemon
+        run: ./gradlew test --no-daemon
         continue-on-error: true
       # Trusted Codex config, written by the workflow (never read from the
       # checkout). Gradle's test workers talk to the build over loopback
