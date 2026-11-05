@@ -13,17 +13,59 @@ jobs:
       contents: read
     outputs:
       final_message: ${{ steps.run_codex.outputs.final-message }}
+    env:
+      # Codex's sandbox can only write inside the workspace, so Gradle's
+      # caches and lock files must live there instead of ~/.gradle.
+      GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-home
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v6
+      # Download the wrapper and dependencies and compile while network access
+      # is available, so Codex can run the tests offline inside its sandbox.
+      # Running the tests (not just testClasses) also resolves the test runtime
+      # classpath (JUnit engine/launcher). A compile or test failure must not
+      # skip the review, so the step may fail.
+      - name: Warm up Gradle
+        run: ./gradlew test --no-daemon
+        continue-on-error: true
+      # Trusted Codex config, written by the workflow (never read from the
+      # checkout). Gradle's test workers talk to the build over loopback
+      # sockets, so the profile allows local binding and loopback only;
+      # the proxy blocks every external destination.
+      - name: Configure Codex permissions
+        run: |
+          mkdir -p "$RUNNER_TEMP/codex-home"
+          cat > "$RUNNER_TEMP/codex-home/config.toml" <<'EOF'
+          [features]
+          network_proxy = true
+
+          [permissions.gradle-tests]
+          description = "Workspace edits plus loopback networking for Gradle tests."
+          extends = ":workspace"
+
+          [permissions.gradle-tests.network]
+          enabled = true
+          allow_local_binding = true
+
+          [permissions.gradle-tests.network.domains]
+          "localhost" = "allow"
+          "127.0.0.1" = "allow"
+          EOF
       - name: Run Codex
         id: run_codex
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          codex-home: ${{ runner.temp }}/codex-home
+          permission-profile: gradle-tests
           prompt-file: .github/codex/prompts/review.md
           output-file: codex-output.json
           output-schema: |
