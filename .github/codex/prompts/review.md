@@ -8,6 +8,12 @@ Focus on:
 - Clarity: confusing naming, missing context that would help a reviewer
 - Consistency: deviations from patterns already established elsewhere in the codebase
 
+Running tests:
+
+- The project is already built and its dependencies are cached. Run the test suite with `./gradlew test --offline --no-daemon`.
+- When a change touches shared mutable state or concurrency, you may write and run a temporary test to probe for races (for example, many threads released together by a `CountDownLatch`). If you find a problem, cite the concrete evidence (inputs, thread count, observed vs expected result) in your comment.
+- Treat test results as evidence, not as the whole review: passing tests do not prove the absence of races.
+
 Do not comment on:
 
 - Formatting or style that a linter would catch
