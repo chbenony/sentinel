@@ -4,7 +4,6 @@
 package dev.sentinel;
 
 import com.sun.net.httpserver.HttpServer;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -27,7 +26,7 @@ public class App {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
 
-        CheckHandler handler = new CheckHandler(rateLimiter, JsonMapper.builder().build());
+        CheckHandler handler = new CheckHandler(rateLimiter, CheckHandler.defaultJsonMapper());
         server.createContext("/v1/limits/check", handler);
         server.start();
     }

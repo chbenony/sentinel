@@ -2,6 +2,7 @@ package dev.sentinel;
 
 import com.sun.net.httpserver.*;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.*;
@@ -14,6 +15,14 @@ public class CheckHandler implements HttpHandler {
     public CheckHandler(RateLimiter rateLimiter, JsonMapper jsonMapper) {
         this.rateLimiter = rateLimiter;
         this.jsonMapper = jsonMapper;
+    }
+
+    // The mapper this handler expects: rejects fractional costs (e.g. 1.9)
+    // instead of silently truncating them to an int.
+    public static JsonMapper defaultJsonMapper() {
+        return JsonMapper.builder()
+                .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
+                .build();
     }
 
 

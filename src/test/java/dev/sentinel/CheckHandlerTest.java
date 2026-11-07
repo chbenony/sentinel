@@ -4,7 +4,6 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -35,7 +34,7 @@ public class CheckHandlerTest {
     @BeforeEach
     void setup() throws IOException {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        server.createContext("/v1/limits/check", new CheckHandler(rateLimiter, JsonMapper.builder().build()));
+        server.createContext("/v1/limits/check", new CheckHandler(rateLimiter, CheckHandler.defaultJsonMapper()));
         server.start();
     }
 
@@ -101,6 +100,23 @@ public class CheckHandlerTest {
                     "resource": "res_1",
                     "principal": "principal_1",
                     "cost": 0
+                }
+                """;
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    void fractionalCostReturns400() throws IOException, InterruptedException {
+        String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/v1/limits/check";
+        String jsonBody = """
+                {
+                    "application": "app_1",
+                    "resource": "res_1",
+                    "principal": "principal_1",
+                    "cost": 1.9
                 }
                 """;
         HttpRequest request = HttpRequest.newBuilder(URI.create(url)).POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
