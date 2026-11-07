@@ -3,12 +3,31 @@
  */
 package dev.sentinel;
 
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
+import com.sun.net.httpserver.HttpServer;
 
-    static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.Executors;
+
+public class App {
+    //v1: Policies are hardcoded for now; Replacing later with a loading config later
+    static void main(String[] args) throws IOException {
+        //Creating a registry
+        PolicyKey policyKey = new PolicyKey("sift", "chat");
+        Policy policy = new Policy(100, 10.0);
+        PolicyRegistry registry = new InMemoryPolicyRegistry(Map.of(policyKey, policy));
+
+        // Create a bucket store and a new rate Limiter
+        BucketStore store = new InMemoryBucketStore(System::nanoTime);
+        RateLimiter rateLimiter = new RateLimiter(registry, store);
+
+        //This is our handler here
+        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+
+        CheckHandler handler = new CheckHandler(rateLimiter, CheckHandler.defaultJsonMapper());
+        server.createContext("/v1/limits/check", handler);
+        server.start();
     }
 }

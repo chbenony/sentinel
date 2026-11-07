@@ -16,6 +16,9 @@ repositories {
 }
 
 dependencies {
+    // JSON (de)serialization for the HTTP layer.
+    implementation(libs.jackson.databind)
+
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
 
