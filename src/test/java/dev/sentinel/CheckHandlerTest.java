@@ -13,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.LongSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -102,6 +103,98 @@ public class CheckHandlerTest {
                     "cost": 0
                 }
                 """;
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    void getRequestReturns405() throws IOException, InterruptedException {
+        String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/v1/limits/check";
+        String jsonBody = """
+                {
+                    "application": "app_1",
+                    "resource": "res_1",
+                    "principal": "principal_1",
+                    "cost": 0
+                }
+                """;
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(Optional.of("POST"), response.headers().firstValue("Allow"));
+        assertEquals(405, response.statusCode());
+    }
+
+    @Test
+    void missingPrincipalReturns400() throws IOException, InterruptedException {
+        String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/v1/limits/check";
+        String jsonBody = """
+                {
+                    "application": "app_1",
+                    "resource": "res_1",
+                    "cost": 10
+                }
+                """;
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    void missingApplicationReturns400() throws IOException, InterruptedException {
+        String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/v1/limits/check";
+        String jsonBody = """
+                {
+                    "principal": "princ_1",
+                    "resource": "res_1",
+                    "cost": 10
+                }
+                """;
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    void missingResourceReturns400() throws IOException, InterruptedException {
+        String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/v1/limits/check";
+        String jsonBody = """
+                {
+                    "principal": "princ_1",
+                    "application": "app_1",
+                    "cost": 10
+                }
+                """;
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    void missingCostReturns400() throws IOException, InterruptedException {
+        String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/v1/limits/check";
+        String jsonBody = """
+                {
+                    "principal": "princ_1",
+                    "application": "app_1",
+                    "resource": "res_1"
+                }
+                """;
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(400, response.statusCode());
+    }
+
+    @Test
+    void nullBodyReturns400() throws IOException, InterruptedException {
+        String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/v1/limits/check";
+        String jsonBody = "null";
         HttpRequest request = HttpRequest.newBuilder(URI.create(url)).POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
