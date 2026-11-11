@@ -34,3 +34,6 @@ bin/
 
 # Ignore Gradle build output directory
 build
+
+# Personal working notes (not published)
+notes.md
