@@ -1,12 +1,18 @@
-# Sentinel
+# 🛡️ Sentinel ✨
+
+[![CI](https://github.com/chbenony/sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/chbenony/sentinel/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/chbenony/sentinel)](https://github.com/chbenony/sentinel/releases)
+![Java 25](https://img.shields.io/badge/Java-25-orange?logo=openjdk)
+
+☕ **Java 25** · 🐘 Gradle · 🧪 JUnit 6 · 📦 Jackson 3
 
 **Sentinel** is a protocol-agnostic rate-limiting service. Clients ask *"may this principal spend `cost` on this resource right now?"* and Sentinel answers with a token-bucket decision.
 
 It is built for [Sift](https://github.com/chbenony/sift) (an AI gateway with its own UI that Écoute also uses), but it knows nothing about AI, MCP, or any client's domain: just `principal`, `application`, `resource`, and `cost`.
 
-## Status
+## 🚦 Status
 
-**v0.1** — a single node with in-memory state.
+**v0.1.0** — a single node with in-memory state.
 
 - ✅ Thread-safe token bucket with lazy refill, covered by concurrency tests
 - ✅ `POST /v1/limits/check` on the JDK `HttpServer` with virtual threads
@@ -15,7 +21,7 @@ It is built for [Sift](https://github.com/chbenony/sift) (an AI gateway with its
 - ⏳ Shared state across instances (Redis) — until then, run one instance
 - ⏳ Metrics and client authentication
 
-## Quick start
+## 🚀 Quick start
 
 Requires JDK 25 (Gradle's toolchain support can download it for you).
 
@@ -36,7 +42,7 @@ curl -i -X POST localhost:8080/v1/limits/check \
 
 The built-in policy for `sift`/`chat` allows a burst of 100 and refills 10 tokens per second.
 
-## API
+## 🔌 API
 
 `POST /v1/limits/check`
 
@@ -62,14 +68,14 @@ The built-in policy for `sift`/`chat` allows a burst of 100 and refills 10 token
 
 Why a denial is a `200` and not a `429`: see [ADR 9](docs/decisions/0009-check-api-contract.md).
 
-## Development
+## 🛠️ Development
 
 ```sh
 ./gradlew test    # unit, concurrency, and HTTP tests
 ./gradlew build
 ```
 
-## Docs
+## 📚 Docs
 
 - [Architecture diagram](docs/architecture.md)
 - [Architecture decision records](docs/decisions/README.md) — what was chosen, what was rejected, and why
