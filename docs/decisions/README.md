@@ -4,6 +4,8 @@ Short records of the significant design decisions in Sentinel: what was chosen, 
 
 Each record follows: **Context → Decision → Alternatives considered → Consequences.** To add one, copy the latest file, bump the number, and add a line below. If a decision is replaced, mark the old record "Superseded by N" rather than deleting it.
 
+See the [architecture diagram](../architecture.md) for how the pieces fit together.
+
 | # | Decision | Status |
 |---|---|---|
 | [1](0001-protocol-agnostic-core.md) | Protocol-agnostic core, request rates only | Accepted |
