@@ -1,0 +1,18 @@
+# Sentinel rate-limit policies.
+#
+# Each entry is one token bucket policy for an (application, resource) pair.
+# Every principal gets its own bucket under that policy.
+#
+#   application  who is calling Sentinel (e.g. sift)
+#   resource     what is being limited (e.g. chat)
+#   capacity     max tokens in the bucket = largest allowed burst (integer >= 1)
+#   refillRate   tokens added per second (> 0, decimals allowed)
+#
+# Each (application, resource) pair may appear only once.
+
+policies:
+  # Sift chat: burst of 100, then a steady 10 requests/sec.
+  - application: sift
+    resource: chat
+    capacity: 100
+    refillRate: 10.0

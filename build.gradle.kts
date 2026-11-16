@@ -19,6 +19,9 @@ dependencies {
     // JSON (de)serialization for the HTTP layer.
     implementation(libs.jackson.databind)
 
+    // YAML parsing for the policy config file.
+    implementation(libs.jackson.dataformat.yaml)
+
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
 
